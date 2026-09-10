@@ -1,0 +1,3713 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+  >
+  <title>3D 에코 하우스 메이커</title>
+
+  <style>
+    :root {
+      --cream: #fff8e8;
+      --paper: #fffdf6;
+      --ink: #4c4540;
+      --brown: #8d6858;
+      --pink: #f5b8c8;
+      --mint: #a9dfc5;
+      --mint-dark: #4b9a78;
+      --sky: #acd9ed;
+      --yellow: #f6d982;
+      --red: #e96969;
+      --blue: #66a5d8;
+      --line: #d6bdaa;
+      --shadow: 0 10px 0 rgba(127, 100, 81, .12);
+      --pixel-shadow: 4px 4px 0 #6d594f;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 20% 10%, #fff 0 4px, transparent 5px),
+        linear-gradient(135deg, #f9e8ec, #e9f7ee 48%, #e8f2fc);
+      background-size: 42px 42px, auto;
+      font-family: Pretendard, "Noto Sans KR", system-ui, sans-serif;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      color: inherit;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .app {
+      width: min(1500px, calc(100% - 24px));
+      margin: 12px auto 28px;
+      overflow: hidden;
+      border: 3px solid #6d594f;
+      border-radius: 22px;
+      background: var(--paper);
+      box-shadow: 9px 9px 0 rgba(109, 89, 79, .25);
+    }
+
+    .app-header {
+      position: relative;
+      padding: 18px 100px 18px 24px;
+      color: #55433c;
+      border-bottom: 3px solid #6d594f;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,.35) 1px, transparent 1px),
+        linear-gradient(#ffd8e2, #f8c9d6);
+      background-size: 10px 10px, auto;
+    }
+
+    .app-header h1 {
+      margin: 0;
+      font-size: clamp(23px, 3.2vw, 37px);
+      letter-spacing: -.04em;
+    }
+
+    .app-header p {
+      margin: 6px 0 0;
+      font-weight: 750;
+    }
+
+    .bgm-button {
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      min-width: 72px;
+      padding: 10px 12px;
+      border: 2px solid #6d594f;
+      border-radius: 10px;
+      background: #fff7bd;
+      box-shadow: 3px 3px 0 #6d594f;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .step-nav {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      border-bottom: 3px solid #6d594f;
+      background: #fff;
+    }
+
+    .step-tab {
+      min-height: 58px;
+      padding: 10px 5px;
+      border: 0;
+      border-right: 2px dashed var(--line);
+      background: #f8f0e8;
+      color: #938279;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .step-tab:last-child {
+      border-right: 0;
+    }
+
+    .step-tab.active {
+      color: #315d4a;
+      background: var(--mint);
+      box-shadow: inset 0 -5px 0 var(--mint-dark);
+    }
+
+    .step-tab.locked {
+      cursor: not-allowed;
+      opacity: .55;
+    }
+
+    .step {
+      display: none;
+      padding: 20px;
+    }
+
+    .step.active {
+      display: block;
+      animation: appear .25s ease-out;
+    }
+
+    @keyframes appear {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+    }
+
+    .panel,
+    .card {
+      border: 2px solid var(--line);
+      border-radius: 16px;
+      background: rgba(255, 253, 246, .96);
+      box-shadow: var(--shadow);
+    }
+
+    .panel {
+      padding: 16px;
+    }
+
+    .card {
+      padding: 16px;
+    }
+
+    .card h2,
+    .card h3,
+    .panel h2,
+    .panel h3 {
+      margin-top: 0;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .choice {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      margin: 10px 0;
+      padding: 12px;
+      border: 2px solid #d9c8bb;
+      border-radius: 13px;
+      background: #fff;
+      cursor: pointer;
+    }
+
+    .choice input {
+      width: 20px;
+      height: 20px;
+      accent-color: var(--mint-dark);
+    }
+
+    .choice strong,
+    .choice small {
+      display: block;
+    }
+
+    .choice small {
+      margin-top: 3px;
+      color: #806f65;
+    }
+
+    .field-row {
+      display: flex;
+      gap: 9px;
+      flex-wrap: wrap;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    select,
+    textarea {
+      min-height: 42px;
+      padding: 9px 11px;
+      border: 2px solid #ccb9ab;
+      border-radius: 10px;
+      color: var(--ink);
+      background: white;
+      outline: none;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--mint-dark);
+    }
+
+    .field-row input {
+      flex: 1 1 160px;
+    }
+
+    .tag-list {
+      display: flex;
+      min-height: 52px;
+      margin-top: 11px;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-content: flex-start;
+    }
+
+    .tag {
+      padding: 7px 10px;
+      border: 2px solid #bda99a;
+      border-radius: 9px;
+      background: #fff3c9;
+      font-weight: 800;
+    }
+
+    .tag button {
+      margin-left: 6px;
+      border: 0;
+      color: var(--red);
+      background: transparent;
+      font-weight: 1000;
+      cursor: pointer;
+    }
+
+    .budget {
+      margin-top: 14px;
+      padding: 12px;
+      border-radius: 12px;
+      background: #edf8f1;
+      font-weight: 900;
+    }
+
+    .budget.over {
+      color: #9e3030;
+      background: #ffe3df;
+    }
+
+    .primary,
+    .secondary,
+    .danger,
+    .small-button {
+      padding: 11px 16px;
+      border: 2px solid #6d594f;
+      border-radius: 10px;
+      box-shadow: 3px 3px 0 #6d594f;
+      font-weight: 950;
+      cursor: pointer;
+      transition: transform .1s;
+    }
+
+    .primary:active,
+    .secondary:active,
+    .danger:active,
+    .small-button:active {
+      transform: translate(3px, 3px);
+      box-shadow: none;
+    }
+
+    .primary {
+      color: white;
+      background: var(--mint-dark);
+    }
+
+    .secondary {
+      background: var(--yellow);
+    }
+
+    .danger {
+      color: white;
+      background: var(--red);
+    }
+
+    .small-button {
+      padding: 7px 9px;
+      background: white;
+      box-shadow: 2px 2px 0 #6d594f;
+    }
+
+    .big-next {
+      width: 100%;
+      margin-top: 18px;
+      padding: 15px;
+      font-size: 18px;
+    }
+
+    .material-table {
+      width: 100%;
+      border-collapse: collapse;
+      overflow: hidden;
+      border-radius: 10px;
+    }
+
+    .material-table th,
+    .material-table td {
+      padding: 10px;
+      border-bottom: 1px solid #dfd2c8;
+      text-align: left;
+    }
+
+    .material-table th {
+      background: #f3eadd;
+    }
+
+    .blueprint {
+      position: relative;
+      min-height: 400px;
+      overflow: hidden;
+      border: 3px solid #386482;
+      border-radius: 12px;
+      background-color: #437ca0;
+      background-image:
+        linear-gradient(rgba(255,255,255,.18) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.18) 1px, transparent 1px);
+      background-size: 25px 25px;
+    }
+
+    .blueprint-title {
+      padding: 12px;
+      color: white;
+      font-weight: 950;
+    }
+
+    .circuit-board {
+      position: relative;
+      width: calc(100% - 30px);
+      height: 330px;
+      margin: 0 15px 15px;
+      border: 2px solid rgba(255,255,255,.7);
+    }
+
+    .circuit-node {
+      position: absolute;
+      z-index: 2;
+      display: grid;
+      width: 90px;
+      min-height: 61px;
+      padding: 8px 5px;
+      place-items: center;
+      border: 2px solid white;
+      border-radius: 8px;
+      color: white;
+      background: #315b73;
+      font-size: 12px;
+      font-weight: 900;
+      text-align: center;
+    }
+
+    .wire-svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .wire-svg path {
+      fill: none;
+      stroke: #ffe68d;
+      stroke-width: 3;
+      stroke-dasharray: 8 5;
+    }
+
+    .designer-layout {
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr) 270px;
+      gap: 12px;
+    }
+
+    .drawer,
+    .memo-widget {
+      max-height: 740px;
+      overflow: auto;
+    }
+
+    .drawer-title {
+      margin: -16px -16px 12px;
+      padding: 10px 13px;
+      border-bottom: 2px dashed #ba9f8d;
+      background: #ffe3ed;
+      font-weight: 950;
+    }
+
+    .drawer-items {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .drawer-item {
+      min-height: 91px;
+      padding: 6px;
+      border: 2px solid #c4ad9c;
+      border-radius: 11px;
+      background: white;
+      box-shadow: 2px 2px 0 #d5beb0;
+      font-size: 12px;
+      font-weight: 850;
+      text-align: center;
+      touch-action: none;
+      cursor: grab;
+    }
+
+    .drawer-item .emoji {
+      display: block;
+      margin-bottom: 3px;
+      font-size: 31px;
+    }
+
+    .drawer-item .count {
+      color: var(--mint-dark);
+    }
+
+    .room-column {
+      min-width: 0;
+    }
+
+    .toolbar,
+    .simulation-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 9px;
+    }
+
+    .toolbar label,
+    .control-group {
+      padding: 7px;
+      border: 2px solid #d5c1b2;
+      border-radius: 10px;
+      background: #fff;
+      font-size: 13px;
+      font-weight: 850;
+    }
+
+    .toolbar select {
+      min-height: 32px;
+      padding: 3px;
+      border-width: 1px;
+    }
+
+    .scene-wrap {
+      position: relative;
+      height: min(68vh, 690px);
+      min-height: 430px;
+      overflow: hidden;
+      border: 4px solid #70574c;
+      border-radius: 16px;
+      background: #cdeaf2;
+      box-shadow: inset 0 0 0 5px #fff7e6, var(--shadow);
+      touch-action: none;
+    }
+
+    .scene-wrap canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .scene-help {
+      position: absolute;
+      left: 10px;
+      bottom: 10px;
+      max-width: calc(100% - 20px);
+      padding: 7px 9px;
+      border: 2px solid #6d594f;
+      border-radius: 8px;
+      background: rgba(255, 253, 238, .92);
+      font-size: 12px;
+      font-weight: 850;
+      pointer-events: none;
+    }
+
+    .scene-badge {
+      position: absolute;
+      z-index: 4;
+      top: 10px;
+      left: 10px;
+      padding: 7px 10px;
+      border: 2px solid #6d594f;
+      border-radius: 8px;
+      background: #ffe4ed;
+      font-weight: 950;
+      pointer-events: none;
+    }
+
+    .object-handles {
+      position: absolute;
+      z-index: 7;
+      display: none;
+      gap: 5px;
+      padding: 6px;
+      border: 2px solid #6d594f;
+      border-radius: 9px;
+      background: #fff8df;
+    }
+
+    .object-handles.show {
+      display: flex;
+    }
+
+    .object-handles button {
+      padding: 5px 7px;
+      border: 1px solid #6d594f;
+      border-radius: 6px;
+      background: white;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .memo-widget {
+      background: #fff4bd;
+    }
+
+    .memo-widget textarea {
+      width: 100%;
+      min-height: 180px;
+      resize: vertical;
+      background:
+        repeating-linear-gradient(
+          #fffdf0,
+          #fffdf0 28px,
+          #d8cdb7 29px
+        );
+      line-height: 29px;
+    }
+
+    .stats-list {
+      display: grid;
+      gap: 7px;
+      margin-top: 12px;
+    }
+
+    .stat {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 8px;
+      border-radius: 8px;
+      background: rgba(255,255,255,.65);
+      font-size: 13px;
+      font-weight: 850;
+    }
+
+    .simulation-layout {
+      display: grid;
+      grid-template-rows: minmax(455px, 70vh) minmax(240px, 30vh);
+      gap: 12px;
+    }
+
+    .simulation-view {
+      position: relative;
+      min-height: 455px;
+      overflow: hidden;
+      border: 4px solid #70574c;
+      border-radius: 16px;
+      background: #cce9f5;
+    }
+
+    .simulation-view canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .simulation-controls {
+      position: absolute;
+      z-index: 6;
+      top: 10px;
+      left: 10px;
+      right: 10px;
+      align-items: flex-end;
+      padding: 8px;
+      border: 2px solid #6d594f;
+      border-radius: 12px;
+      background: rgba(255, 252, 239, .93);
+    }
+
+    .control-group {
+      display: grid;
+      min-width: 118px;
+      gap: 3px;
+    }
+
+    .control-group input[type="range"] {
+      width: 135px;
+    }
+
+    .sim-bottom {
+      display: grid;
+      grid-template-columns: 1.35fr .65fr;
+      min-height: 230px;
+      gap: 12px;
+    }
+
+    .console {
+      overflow: auto;
+      padding: 13px;
+      border: 3px solid #473f3a;
+      border-radius: 13px;
+      color: #b9f9d0;
+      background: #20272a;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .score-panel {
+      display: grid;
+      align-content: center;
+      padding: 15px;
+      border: 3px solid #70574c;
+      border-radius: 13px;
+      background: #fff5ca;
+      text-align: center;
+    }
+
+    .score {
+      font-size: 42px;
+      font-weight: 1000;
+    }
+
+    .stars {
+      color: #efa900;
+      font-size: 29px;
+      letter-spacing: 3px;
+    }
+
+    .meter {
+      height: 17px;
+      margin: 5px 0 11px;
+      overflow: hidden;
+      border: 2px solid #6d594f;
+      border-radius: 8px;
+      background: white;
+    }
+
+    .meter > div {
+      height: 100%;
+      width: 0;
+      background: var(--mint-dark);
+      transition: width .3s;
+    }
+
+    .warning {
+      color: #ff9b9b;
+    }
+
+    .success {
+      color: #8cf2b1;
+    }
+
+    .pop-note {
+      position: fixed;
+      z-index: 50;
+      padding: 9px 13px;
+      border: 2px solid #6d594f;
+      border-radius: 9px;
+      background: #fff1aa;
+      box-shadow: var(--pixel-shadow);
+      font-weight: 950;
+      pointer-events: none;
+      animation: popNote .9s ease forwards;
+    }
+
+    @keyframes popNote {
+      0% {
+        opacity: 0;
+        transform: scale(.4) translateY(10px);
+      }
+      25% {
+        opacity: 1;
+        transform: scale(1.1);
+      }
+      100% {
+        opacity: 0;
+        transform: translateY(-35px);
+      }
+    }
+
+    @media (max-width: 1100px) {
+      .designer-layout {
+        grid-template-columns: 210px minmax(0, 1fr);
+      }
+
+      .memo-widget {
+        grid-column: 1 / -1;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .app {
+        width: calc(100% - 8px);
+        margin: 4px;
+        border-radius: 14px;
+      }
+
+      .app-header {
+        padding: 14px 80px 14px 13px;
+      }
+
+      .step {
+        padding: 10px;
+      }
+
+      .step-tab {
+        min-height: 55px;
+        font-size: 11px;
+      }
+
+      .grid-2,
+      .designer-layout,
+      .sim-bottom {
+        grid-template-columns: 1fr;
+      }
+
+      .drawer {
+        max-height: none;
+      }
+
+      .drawer-items {
+        display: flex;
+        overflow-x: auto;
+      }
+
+      .drawer-item {
+        min-width: 100px;
+      }
+
+      .scene-wrap {
+        min-height: 390px;
+        height: 60vh;
+      }
+
+      .simulation-layout {
+        grid-template-rows: 66vh auto;
+      }
+
+      .simulation-controls {
+        max-height: 175px;
+        overflow: auto;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="app">
+    <header class="app-header">
+      <h1>🏡 3D 에코 하우스 메이커</h1>
+      <p>기획하고, 연결하고, 꾸민 다음 실제로 작동시켜 보세요!</p>
+      <button id="bgmButton" class="bgm-button" type="button">♫ BGM OFF</button>
+    </header>
+
+    <nav class="step-nav" aria-label="활동 단계">
+      <button class="step-tab active" data-step="1">1. 기획<br>& 재료 신청</button>
+      <button class="step-tab locked" data-step="2">2. 설계<br>수급</button>
+      <button class="step-tab locked" data-step="3">3. 3D<br>공간 배치</button>
+      <button class="step-tab locked" data-step="4">4. 완성품<br>시뮬레이션</button>
+    </nav>
+
+    <!-- 1단계 -->
+    <section id="step1" class="step active">
+      <div class="grid-2">
+        <article class="card">
+          <h2>1단계 · 어떤 에코 하우스를 만들까요?</h2>
+          <p>예산 안에서 필요한 기능을 골라 보세요. 기능을 선택하면 관련 부품이 자동으로 신청됩니다.</p>
+
+          <label class="choice">
+            <input class="feature-check" type="checkbox" value="autoLight">
+            <span>
+              <strong>💡 스마트 자동 조명 — 1,800코인</strong>
+              <small>어두워지면 조도센서가 LED 전구를 켭니다.</small>
+            </span>
+          </label>
+
+          <label class="choice">
+            <input class="feature-check" type="checkbox" value="climate">
+            <span>
+              <strong>🌀 자동 환기 — 2,100코인</strong>
+              <small>실내가 더워지면 온습도센서와 환기팬이 작동합니다.</small>
+            </span>
+          </label>
+
+          <label class="choice">
+            <input class="feature-check" type="checkbox" value="motionLight">
+            <span>
+              <strong>🚶 현관 인체감지 조명 — 1,900코인</strong>
+              <small>미니미가 지나가면 현관 조명이 잠시 켜집니다.</small>
+            </span>
+          </label>
+
+          <label class="choice">
+            <input class="feature-check" type="checkbox" value="watering">
+            <span>
+              <strong>💧 빗물 스마트 급수 — 2,900코인</strong>
+              <small>마른 화단을 빗물 저장통과 급수 펌프로 돌봅니다.</small>
+            </span>
+          </label>
+
+          <label class="choice">
+            <input class="feature-check" type="checkbox" value="solar">
+            <span>
+              <strong>☀️ 태양광 발전 — 3,000코인</strong>
+              <small>햇빛의 세기에 맞춰 발전하고 배터리를 충전합니다.</small>
+            </span>
+          </label>
+
+          <label class="choice">
+            <input class="feature-check" type="checkbox" value="insulation">
+            <span>
+              <strong>🪟 고효율 단열창 — 1,400코인</strong>
+              <small>실내 열 손실과 냉난방 에너지 사용을 줄입니다.</small>
+            </span>
+          </label>
+
+          <div id="budgetBox" class="budget">
+            예산 12,000코인 · 사용 0코인 · 남음 12,000코인
+          </div>
+        </article>
+
+        <article class="card">
+          <h2>🎨 우리 집 컨셉과 소품</h2>
+
+          <label>
+            집 이름
+            <input id="houseName" type="text" value="꿈꾸는 민트 하우스" style="width:100%">
+          </label>
+
+          <label style="display:block; margin-top:12px">
+            디자인 메모
+            <textarea
+              id="conceptMemo"
+              style="width:100%; min-height:100px"
+            >햇빛과 빗물을 아껴 쓰는 아기자기한 집</textarea>
+          </label>
+
+          <h3 style="margin-top:18px">가구/소품 추가</h3>
+          <div class="field-row">
+            <input id="customInput" type="text" placeholder="예: 침대, 소파, 책상, 화분">
+            <button id="addCustomButton" class="secondary" type="button">추가</button>
+          </div>
+          <div id="customList" class="tag-list"></div>
+
+          <p>
+            <strong>기본 지급:</strong>
+            제어 보드, 배터리, 미니미 캐릭터
+          </p>
+        </article>
+      </div>
+
+      <button id="toStep2" class="primary big-next" type="button">
+        신청 완료 · 설계도 만들기 →
+      </button>
+    </section>
+
+    <!-- 2단계 -->
+    <section id="step2" class="step">
+      <div class="grid-2">
+        <article class="panel">
+          <h2>2단계 · 재료 수급 명세서</h2>
+          <p>1단계에서 고른 기능과 소품이 자동으로 넘어왔습니다.</p>
+          <div style="overflow:auto">
+            <table class="material-table">
+              <thead>
+                <tr>
+                  <th>재료</th>
+                  <th>종류</th>
+                  <th>부착 위치</th>
+                </tr>
+              </thead>
+              <tbody id="materialBody"></tbody>
+            </table>
+          </div>
+        </article>
+
+        <article class="panel">
+          <h2>자동 회로도 / 배관도</h2>
+          <p>
+            노드를 끌어 간단히 위치를 정할 수 있습니다. 연결 규칙은 다음 단계에서도 유지됩니다.
+          </p>
+
+          <div class="blueprint">
+            <div class="blueprint-title" id="blueprintTitle">에코 하우스 통합 설계도</div>
+            <div id="circuitBoard" class="circuit-board">
+              <svg id="blueprintWires" class="wire-svg"></svg>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <button id="toStep3" class="primary big-next" type="button">
+        설계 확정 · 3D 미니룸 꾸미기 →
+      </button>
+    </section>
+
+    <!-- 3단계 -->
+    <section id="step3" class="step">
+      <div class="designer-layout">
+        <aside class="panel drawer">
+          <div class="drawer-title">📦 아이템 서랍</div>
+          <p style="font-size:12px">
+            아이템을 장면으로 드래그하거나 눌러 선택한 뒤 장면을 눌러 배치하세요.
+          </p>
+          <div id="drawerItems" class="drawer-items"></div>
+        </aside>
+
+        <div class="room-column">
+          <div class="toolbar">
+            <button id="indoorButton" class="small-button" type="button">🏠 실내</button>
+            <button id="outdoorButton" class="small-button" type="button">🌿 마당·옥상</button>
+
+            <label>
+              벽지
+              <select id="wallMaterial">
+                <option value="cream">크림 도트</option>
+                <option value="pink">복숭아 체크</option>
+                <option value="mint">민트 벽지</option>
+              </select>
+            </label>
+
+            <label>
+              바닥
+              <select id="floorMaterial">
+                <option value="wood">밝은 장판</option>
+                <option value="tile">파스텔 타일</option>
+                <option value="green">잔디 바닥</option>
+              </select>
+            </label>
+
+            <label>
+              창문
+              <select id="windowMaterial">
+                <option value="sky">맑은 하늘색</option>
+                <option value="sunset">노을빛</option>
+                <option value="mint">민트 유리</option>
+              </select>
+            </label>
+          </div>
+
+          <div id="builderScene" class="scene-wrap">
+            <div id="sceneBadge" class="scene-badge">🏠 실내 미니룸</div>
+            <div id="objectHandles" class="object-handles">
+              <button id="rotateObject" type="button">↻ 회전</button>
+              <button id="deleteObject" type="button">× 삭제</button>
+            </div>
+            <div class="scene-help">
+              빈 곳 드래그: 90° 스냅 회전 · 휠/두 손가락: 줌 · 아이템 탭: 선택
+            </div>
+          </div>
+        </div>
+
+        <aside class="panel memo-widget">
+          <div class="drawer-title">💌 미니룸 방명록</div>
+          <textarea id="guestMemo">오늘의 한마디:
+햇빛은 전기로,
+빗물은 정원 물로!</textarea>
+
+          <div class="stats-list">
+            <div class="stat"><span>현재 공간</span><strong id="currentSpaceText">실내</strong></div>
+            <div class="stat"><span>배치한 물건</span><strong id="placedCount">0개</strong></div>
+            <div class="stat"><span>남은 물건</span><strong id="remainingCount">0개</strong></div>
+            <div class="stat"><span>회전 각도</span><strong id="cameraAngleText">45°</strong></div>
+          </div>
+        </aside>
+      </div>
+
+      <button id="toStep4" class="primary big-next" type="button">
+        배치 완료 · 완성품 작동 시험 →
+      </button>
+    </section>
+
+    <!-- 4단계 -->
+    <section id="step4" class="step">
+      <div class="simulation-layout">
+        <div id="simulationView" class="simulation-view">
+          <div class="simulation-controls">
+            <label class="control-group">
+              시간 <strong id="timeValue">12:00</strong>
+              <input id="timeControl" type="range" min="0" max="24" step=".25" value="12">
+            </label>
+
+            <label class="control-group">
+              날씨
+              <select id="weatherControl">
+                <option value="sunny">맑음</option>
+                <option value="cloudy">흐림</option>
+                <option value="rain">비</option>
+              </select>
+            </label>
+
+            <label class="control-group">
+              실외 온도 <strong id="temperatureValue">24°C</strong>
+              <input id="temperatureControl" type="range" min="-5" max="40" value="24">
+            </label>
+
+            <label class="control-group">
+              재실 인원 <strong id="peopleValue">1명</strong>
+              <input id="peopleControl" type="range" min="0" max="5" value="1">
+            </label>
+
+            <button id="drySoilButton" class="secondary" type="button">🏜️ 흙 말리기</button>
+            <button id="resetSimulation" class="small-button" type="button">↺ 초기화</button>
+          </div>
+        </div>
+
+        <div class="sim-bottom">
+          <div id="console" class="console"></div>
+
+          <aside class="score-panel">
+            <strong>우리 집 에코 점수</strong>
+            <div id="ecoScore" class="score">0점</div>
+            <div id="ecoStars" class="stars">☆☆☆☆☆</div>
+
+            <span>배터리 <strong id="batteryText">50%</strong></span>
+            <div class="meter"><div id="batteryMeter"></div></div>
+
+            <span>빗물 저장량 <strong id="waterText">70%</strong></span>
+            <div class="meter"><div id="waterMeter" style="background:#5eb4df"></div></div>
+
+            <small id="savingText">절감 전력 0Wh · 절약한 물 0L</small>
+          </aside>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module">
+    import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js";
+
+    /* ============================================================
+       1. 부품과 기능 규칙
+       새 부품은 PART_LIBRARY에, 새 자동화 기능은 FEATURE_RULES에 추가합니다.
+       ============================================================ */
+
+    const PART_LIBRARY = {
+      controller: {
+        name: "제어 보드",
+        emoji: "📟",
+        kind: "전기",
+        attach: "floor",
+        color: 0x55a884,
+        shape: "board"
+      },
+      battery: {
+        name: "배터리",
+        emoji: "🔋",
+        kind: "전기",
+        attach: "floor",
+        color: 0x477775,
+        shape: "battery"
+      },
+      led: {
+        name: "LED 전구",
+        emoji: "💡",
+        kind: "출력",
+        attach: "ceiling",
+        color: 0xffe790,
+        shape: "lamp"
+      },
+      entranceLed: {
+        name: "현관 조명",
+        emoji: "🏮",
+        kind: "출력",
+        attach: "wall",
+        color: 0xffc86d,
+        shape: "lamp"
+      },
+      lightSensor: {
+        name: "조도센서",
+        emoji: "👁️",
+        kind: "센서",
+        attach: "wall",
+        color: 0x637b9d,
+        shape: "sensor"
+      },
+      climateSensor: {
+        name: "온습도센서",
+        emoji: "🌡️",
+        kind: "센서",
+        attach: "wall",
+        color: 0xf18a8a,
+        shape: "sensor"
+      },
+      motionSensor: {
+        name: "인체감지센서",
+        emoji: "📡",
+        kind: "센서",
+        attach: "wall",
+        color: 0xe2af6d,
+        shape: "sensor"
+      },
+      fan: {
+        name: "환기팬",
+        emoji: "🌀",
+        kind: "출력",
+        attach: "wall",
+        color: 0x83bdd5,
+        shape: "fan"
+      },
+      soilSensor: {
+        name: "토양수분센서",
+        emoji: "🌱",
+        kind: "센서",
+        attach: "floor",
+        color: 0x73935f,
+        shape: "sensor"
+      },
+      rainSensor: {
+        name: "빗물센서",
+        emoji: "🌧️",
+        kind: "센서",
+        attach: "outdoor",
+        color: 0x79aadd,
+        shape: "sensor"
+      },
+      waterTank: {
+        name: "빗물 저장통",
+        emoji: "🛢️",
+        kind: "물",
+        attach: "outdoor",
+        color: 0x62afd1,
+        shape: "tank"
+      },
+      pump: {
+        name: "급수 펌프",
+        emoji: "🚰",
+        kind: "출력",
+        attach: "outdoor",
+        color: 0x508cb2,
+        shape: "pump"
+      },
+      solarPanel: {
+        name: "태양광 패널",
+        emoji: "☀️",
+        kind: "발전",
+        attach: "outdoor",
+        color: 0x315986,
+        shape: "solar"
+      },
+      insulatedWindow: {
+        name: "단열창",
+        emoji: "🪟",
+        kind: "건축",
+        attach: "wall",
+        color: 0x8fd6e7,
+        shape: "window"
+      },
+      bed: {
+        name: "침대",
+        emoji: "🛏️",
+        kind: "가구",
+        attach: "floor",
+        color: 0xf0aab7,
+        shape: "bed"
+      },
+      sofa: {
+        name: "소파",
+        emoji: "🛋️",
+        kind: "가구",
+        attach: "floor",
+        color: 0xe5a587,
+        shape: "sofa"
+      },
+      desk: {
+        name: "책상",
+        emoji: "🪑",
+        kind: "가구",
+        attach: "floor",
+        color: 0xc49065,
+        shape: "desk"
+      },
+      plant: {
+        name: "화분",
+        emoji: "🪴",
+        kind: "소품",
+        attach: "floor",
+        color: 0x6aa36c,
+        shape: "plant"
+      },
+      minimi: {
+        name: "미니미",
+        emoji: "🧒",
+        kind: "캐릭터",
+        attach: "floor",
+        color: 0xf5c190,
+        shape: "person"
+      }
+    };
+
+    const FEATURE_RULES = {
+      autoLight: {
+        name: "스마트 자동 조명",
+        price: 1800,
+        parts: ["lightSensor", "led"],
+        links: [
+          ["lightSensor", "controller", "electric"],
+          ["controller", "led", "electric"]
+        ]
+      },
+      climate: {
+        name: "자동 환기",
+        price: 2100,
+        parts: ["climateSensor", "fan"],
+        links: [
+          ["climateSensor", "controller", "electric"],
+          ["controller", "fan", "electric"]
+        ]
+      },
+      motionLight: {
+        name: "현관 인체감지 조명",
+        price: 1900,
+        parts: ["motionSensor", "entranceLed"],
+        links: [
+          ["motionSensor", "controller", "electric"],
+          ["controller", "entranceLed", "electric"]
+        ]
+      },
+      watering: {
+        name: "빗물 스마트 급수",
+        price: 2900,
+        parts: ["soilSensor", "rainSensor", "waterTank", "pump"],
+        links: [
+          ["soilSensor", "controller", "electric"],
+          ["rainSensor", "controller", "electric"],
+          ["controller", "pump", "electric"],
+          ["waterTank", "pump", "water"]
+        ]
+      },
+      solar: {
+        name: "태양광 발전",
+        price: 3000,
+        parts: ["solarPanel"],
+        links: [
+          ["solarPanel", "battery", "electric"],
+          ["battery", "controller", "electric"]
+        ]
+      },
+      insulation: {
+        name: "고효율 단열창",
+        price: 1400,
+        parts: ["insulatedWindow"],
+        links: []
+      }
+    };
+
+    const CUSTOM_MAP = [
+      [/침대/, "bed"],
+      [/소파|쇼파/, "sofa"],
+      [/책상|테이블|의자/, "desk"],
+      [/화분|식물|꽃|나무/, "plant"]
+    ];
+
+    const BUDGET = 12000;
+    const GRID = 0.75;
+
+    /* ============================================================
+       2. 단일 전역 상태
+       1단계부터 4단계까지 모든 데이터가 APP_STATE로 승계됩니다.
+       ============================================================ */
+
+    const APP_STATE = {
+      currentStep: 1,
+      maxStep: 1,
+      plan: {
+        houseName: "꿈꾸는 민트 하우스",
+        memo: "햇빛과 빗물을 아껴 쓰는 아기자기한 집",
+        selectedFeatures: [],
+        customItems: [],
+        budget: BUDGET
+      },
+      design: {
+        materials: [],
+        links: [],
+        blueprintNodes: {}
+      },
+      build: {
+        currentSpace: "indoor",
+        wallMaterial: "cream",
+        floorMaterial: "wood",
+        windowMaterial: "sky",
+        cameraQuarter: 0,
+        placed: []
+      },
+      simulation: {
+        time: 12,
+        weather: "sunny",
+        outdoorTemp: 24,
+        people: 1,
+        soilMoisture: 34,
+        battery: 50,
+        water: 70,
+        indoorTemp: 24,
+        savedEnergy: 0,
+        savedWater: 0,
+        score: 0
+      }
+    };
+
+    window.APP_STATE = APP_STATE;
+
+    let nextInstanceId = 1;
+    let activePlacePart = null;
+    let selectedObjectId = null;
+
+    const scenes = {
+      builder: null,
+      simulation: null
+    };
+
+    /* ============================================================
+       3. 일반 UI와 1단계
+       ============================================================ */
+
+    const $ = (selector) => document.querySelector(selector);
+    const $$ = (selector) => [...document.querySelectorAll(selector)];
+
+    function showToast(text, x = innerWidth / 2, y = innerHeight / 2) {
+      const note = document.createElement("div");
+      note.className = "pop-note";
+      note.textContent = text;
+      note.style.left = `${Math.max(8, x - 45)}px`;
+      note.style.top = `${Math.max(8, y - 25)}px`;
+      document.body.appendChild(note);
+      setTimeout(() => note.remove(), 920);
+    }
+
+    function getSelectedFeatures() {
+      return $$(".feature-check:checked").map((input) => input.value);
+    }
+
+    function updateBudget() {
+      const selected = getSelectedFeatures();
+      const used = selected.reduce(
+        (sum, key) => sum + FEATURE_RULES[key].price,
+        0
+      );
+      const remaining = BUDGET - used;
+      const budgetBox = $("#budgetBox");
+
+      budgetBox.textContent =
+        `예산 ${BUDGET.toLocaleString()}코인 · ` +
+        `사용 ${used.toLocaleString()}코인 · ` +
+        `남음 ${remaining.toLocaleString()}코인`;
+
+      budgetBox.classList.toggle("over", remaining < 0);
+      return remaining >= 0;
+    }
+
+    function customPartKey(name, index) {
+      const found = CUSTOM_MAP.find(([pattern]) => pattern.test(name));
+      return found ? found[1] : `custom_${index}`;
+    }
+
+    function createCustomDefinition(name, key) {
+      if (PART_LIBRARY[key]) {
+        return key;
+      }
+
+      PART_LIBRARY[key] = {
+        name,
+        emoji: "📦",
+        kind: "소품",
+        attach: "floor",
+        color: 0xc9a5d7,
+        shape: "box"
+      };
+
+      return key;
+    }
+
+    function renderCustomList() {
+      $("#customList").innerHTML = APP_STATE.plan.customItems.map(
+        (name, index) => `
+          <span class="tag">
+            ${escapeHTML(name)}
+            <button type="button" data-remove-custom="${index}">×</button>
+          </span>
+        `
+      ).join("");
+
+      $$("[data-remove-custom]").forEach((button) => {
+        button.addEventListener("click", () => {
+          APP_STATE.plan.customItems.splice(
+            Number(button.dataset.removeCustom),
+            1
+          );
+          renderCustomList();
+        });
+      });
+    }
+
+    function addCustomItem() {
+      const input = $("#customInput");
+      const value = input.value.trim();
+
+      if (!value) {
+        return;
+      }
+
+      APP_STATE.plan.customItems.push(value);
+      input.value = "";
+      renderCustomList();
+    }
+
+    function escapeHTML(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    $$(".feature-check").forEach((input) => {
+      input.addEventListener("change", updateBudget);
+    });
+
+    $("#addCustomButton").addEventListener("click", addCustomItem);
+    $("#customInput").addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        addCustomItem();
+      }
+    });
+
+    /* ============================================================
+       4. 단계 이동과 상태 승계
+       ============================================================ */
+
+    function moveToStep(step) {
+      if (step > APP_STATE.maxStep) {
+        showToast("앞 단계를 먼저 완료해 주세요!");
+        return;
+      }
+
+      APP_STATE.currentStep = step;
+
+      $$(".step").forEach((section) => section.classList.remove("active"));
+      $(`#step${step}`).classList.add("active");
+
+      $$(".step-tab").forEach((tab) => {
+        const tabStep = Number(tab.dataset.step);
+        tab.classList.toggle("active", tabStep === step);
+        tab.classList.toggle("locked", tabStep > APP_STATE.maxStep);
+      });
+
+      if (step === 2) {
+        renderStep2();
+      }
+
+      if (step === 3) {
+        renderDrawer();
+        syncBuilderFromState();
+        resizeAllScenes();
+      }
+
+      if (step === 4) {
+        syncSimulationFromState();
+        resizeAllScenes();
+        updateSimulation(true);
+      }
+    }
+
+    function unlockAndMove(step) {
+      APP_STATE.maxStep = Math.max(APP_STATE.maxStep, step);
+      moveToStep(step);
+    }
+
+    $$(".step-tab").forEach((tab) => {
+      tab.addEventListener("click", () => {
+        moveToStep(Number(tab.dataset.step));
+      });
+    });
+
+    $("#toStep2").addEventListener("click", () => {
+      if (!updateBudget()) {
+        showToast("예산을 넘었어요! 기능을 하나 줄여 주세요.");
+        return;
+      }
+
+      const selected = getSelectedFeatures();
+
+      if (selected.length === 0) {
+        showToast("스마트 기능을 한 가지 이상 골라 주세요.");
+        return;
+      }
+
+      APP_STATE.plan.houseName =
+        $("#houseName").value.trim() || "나의 에코 하우스";
+      APP_STATE.plan.memo = $("#conceptMemo").value.trim();
+      APP_STATE.plan.selectedFeatures = selected;
+
+      buildDesignState();
+      unlockAndMove(2);
+    });
+
+    $("#toStep3").addEventListener("click", () => {
+      saveBlueprintNodePositions();
+      unlockAndMove(3);
+    });
+
+    $("#toStep4").addEventListener("click", () => {
+      unlockAndMove(4);
+    });
+
+    /* ============================================================
+       5. 2단계 설계도
+       ============================================================ */
+
+    function buildDesignState() {
+      const materialKeys = ["controller", "battery", "minimi"];
+      const links = [];
+
+      APP_STATE.plan.selectedFeatures.forEach((featureKey) => {
+        const feature = FEATURE_RULES[featureKey];
+        materialKeys.push(...feature.parts);
+        links.push(...feature.links);
+      });
+
+      APP_STATE.plan.customItems.forEach((name, index) => {
+        const mappedKey = customPartKey(name, index);
+
+        if (PART_LIBRARY[mappedKey]) {
+          materialKeys.push(mappedKey);
+        } else {
+          materialKeys.push(
+            createCustomDefinition(name, mappedKey)
+          );
+        }
+      });
+
+      APP_STATE.design.materials = [...new Set(materialKeys)];
+      APP_STATE.design.links = links;
+    }
+
+    function renderStep2() {
+      $("#materialBody").innerHTML = APP_STATE.design.materials.map((key) => {
+        const part = PART_LIBRARY[key];
+        const attachText = {
+          floor: "바닥",
+          wall: "벽",
+          ceiling: "천장",
+          outdoor: "마당·옥상"
+        }[part.attach];
+
+        return `
+          <tr>
+            <td>${part.emoji} ${escapeHTML(part.name)}</td>
+            <td>${escapeHTML(part.kind)}</td>
+            <td>${attachText}</td>
+          </tr>
+        `;
+      }).join("");
+
+      $("#blueprintTitle").textContent =
+        `${APP_STATE.plan.houseName} · 자동 회로도/배관도`;
+
+      renderBlueprint();
+    }
+
+    function renderBlueprint() {
+      const board = $("#circuitBoard");
+      board.querySelectorAll(".circuit-node").forEach((node) => node.remove());
+
+      const keys = APP_STATE.design.materials.filter(
+        (key) => PART_LIBRARY[key].kind !== "가구" &&
+                 PART_LIBRARY[key].kind !== "소품" &&
+                 key !== "minimi"
+      );
+
+      keys.forEach((key, index) => {
+        const saved = APP_STATE.design.blueprintNodes[key];
+        const columns = 4;
+        const x = saved?.x ?? 6 + (index % columns) * 24;
+        const y = saved?.y ?? 7 + Math.floor(index / columns) * 28;
+
+        const node = document.createElement("div");
+        node.className = "circuit-node";
+        node.dataset.part = key;
+        node.style.left = `${x}%`;
+        node.style.top = `${y}%`;
+        node.innerHTML =
+          `<span>${PART_LIBRARY[key].emoji}</span>${PART_LIBRARY[key].name}`;
+
+        enableBlueprintDrag(node);
+        board.appendChild(node);
+      });
+
+      requestAnimationFrame(drawBlueprintWires);
+    }
+
+    function enableBlueprintDrag(node) {
+      let dragging = false;
+      let pointerId = null;
+      let startX = 0;
+      let startY = 0;
+      let originLeft = 0;
+      let originTop = 0;
+
+      node.addEventListener("pointerdown", (event) => {
+        dragging = true;
+        pointerId = event.pointerId;
+        startX = event.clientX;
+        startY = event.clientY;
+        originLeft = node.offsetLeft;
+        originTop = node.offsetTop;
+        node.setPointerCapture(pointerId);
+      });
+
+      node.addEventListener("pointermove", (event) => {
+        if (!dragging) {
+          return;
+        }
+
+        const board = $("#circuitBoard");
+        const maxLeft = board.clientWidth - node.offsetWidth;
+        const maxTop = board.clientHeight - node.offsetHeight;
+
+        node.style.left =
+          `${Math.max(0, Math.min(maxLeft, originLeft + event.clientX - startX))}px`;
+        node.style.top =
+          `${Math.max(0, Math.min(maxTop, originTop + event.clientY - startY))}px`;
+
+        drawBlueprintWires();
+      });
+
+      node.addEventListener("pointerup", () => {
+        dragging = false;
+        saveBlueprintNodePositions();
+      });
+    }
+
+    function saveBlueprintNodePositions() {
+      const board = $("#circuitBoard");
+
+      board.querySelectorAll(".circuit-node").forEach((node) => {
+        APP_STATE.design.blueprintNodes[node.dataset.part] = {
+          x: node.offsetLeft / board.clientWidth * 100,
+          y: node.offsetTop / board.clientHeight * 100
+        };
+      });
+    }
+
+    function drawBlueprintWires() {
+      const board = $("#circuitBoard");
+      const svg = $("#blueprintWires");
+      const boardRect = board.getBoundingClientRect();
+
+      svg.setAttribute("viewBox", `0 0 ${boardRect.width} ${boardRect.height}`);
+      svg.innerHTML = "";
+
+      APP_STATE.design.links.forEach(([from, to, type]) => {
+        const a = board.querySelector(`[data-part="${from}"]`);
+        const b = board.querySelector(`[data-part="${to}"]`);
+
+        if (!a || !b) {
+          return;
+        }
+
+        const x1 = a.offsetLeft + a.offsetWidth / 2;
+        const y1 = a.offsetTop + a.offsetHeight / 2;
+        const x2 = b.offsetLeft + b.offsetWidth / 2;
+        const y2 = b.offsetTop + b.offsetHeight / 2;
+        const bend = (x1 + x2) / 2;
+
+        const path = document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "path"
+        );
+
+        path.setAttribute(
+          "d",
+          `M ${x1} ${y1} C ${bend} ${y1}, ${bend} ${y2}, ${x2} ${y2}`
+        );
+
+        if (type === "water") {
+          path.style.stroke = "#8fe7ff";
+        }
+
+        svg.appendChild(path);
+      });
+    }
+
+    /* ============================================================
+       6. Three.js 공통 도우미
+       ============================================================ */
+
+    function createRenderer(container) {
+      const renderer = new THREE.WebGLRenderer({
+        antialias: false,
+        powerPreference: "high-performance"
+      });
+
+      renderer.setPixelRatio(Math.min(devicePixelRatio, 1.35));
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      container.prepend(renderer.domElement);
+
+      return renderer;
+    }
+
+    function createOrthographicCamera() {
+      const camera = new THREE.OrthographicCamera(-7, 7, 5, -5, .1, 100);
+      camera.userData.zoomLevel = 1;
+      return camera;
+    }
+
+    function applyQuarterCamera(camera, quarter = 0, zoom = 1) {
+      const angle = Math.PI / 4 + quarter * Math.PI / 2;
+      const radius = 14;
+
+      camera.position.set(
+        Math.sin(angle) * radius,
+        10,
+        Math.cos(angle) * radius
+      );
+
+      camera.lookAt(0, 1.5, 0);
+      camera.zoom = zoom;
+      camera.updateProjectionMatrix();
+    }
+
+    function resizeScene(sceneData, container) {
+      if (!sceneData) {
+        return;
+      }
+
+      const width = Math.max(1, container.clientWidth);
+      const height = Math.max(1, container.clientHeight);
+      const aspect = width / height;
+      const viewHeight = 10;
+
+      sceneData.camera.left = -viewHeight * aspect / 2;
+      sceneData.camera.right = viewHeight * aspect / 2;
+      sceneData.camera.top = viewHeight / 2;
+      sceneData.camera.bottom = -viewHeight / 2;
+      sceneData.camera.updateProjectionMatrix();
+      sceneData.renderer.setSize(width, height, false);
+    }
+
+    function makeMaterial(color, extra = {}) {
+      return new THREE.MeshStandardMaterial({
+        color,
+        roughness: .74,
+        metalness: .03,
+        ...extra
+      });
+    }
+
+    function box(w, h, d, color, x = 0, y = 0, z = 0) {
+      const mesh = new THREE.Mesh(
+        new THREE.BoxGeometry(w, h, d),
+        makeMaterial(color)
+      );
+
+      mesh.position.set(x, y, z);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      return mesh;
+    }
+
+    function cylinder(radius, height, color, segments = 12) {
+      const mesh = new THREE.Mesh(
+        new THREE.CylinderGeometry(radius, radius, height, segments),
+        makeMaterial(color)
+      );
+
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      return mesh;
+    }
+
+    function createObjectModel(partKey) {
+      const def = PART_LIBRARY[partKey];
+      const group = new THREE.Group();
+      group.userData.partKey = partKey;
+
+      switch (def.shape) {
+        case "board": {
+          group.add(box(1.15, .18, .78, def.color, 0, .18, 0));
+
+          for (let i = 0; i < 6; i += 1) {
+            const pin = box(.08, .15, .08, 0xe0c371, -.45 + i * .18, .34, .27);
+            group.add(pin);
+          }
+          break;
+        }
+
+        case "battery": {
+          group.add(box(.75, 1.15, .55, def.color, 0, .58, 0));
+          group.add(box(.22, .12, .2, 0xd7c26c, 0, 1.2, 0));
+          break;
+        }
+
+        case "lamp": {
+          const bulb = new THREE.Mesh(
+            new THREE.SphereGeometry(.34, 12, 8),
+            makeMaterial(def.color, {
+              emissive: 0x332400,
+              emissiveIntensity: .15
+            })
+          );
+
+          bulb.position.y = .35;
+          bulb.userData.isBulb = true;
+          group.add(bulb);
+          group.add(box(.24, .28, .24, 0x8c8075, 0, .05, 0));
+          break;
+        }
+
+        case "sensor": {
+          group.add(box(.62, .44, .28, def.color, 0, .24, 0));
+
+          const eye = new THREE.Mesh(
+            new THREE.SphereGeometry(.11, 10, 6),
+            makeMaterial(0x252b35)
+          );
+
+          eye.position.set(0, .26, .17);
+          group.add(eye);
+          break;
+        }
+
+        case "fan": {
+          const hub = cylinder(.15, .25, 0x607d89, 12);
+          hub.rotation.x = Math.PI / 2;
+          hub.position.y = .55;
+          group.add(hub);
+
+          const blades = new THREE.Group();
+          blades.name = "fanBlades";
+          blades.position.y = .55;
+
+          for (let i = 0; i < 4; i += 1) {
+            const blade = box(.16, .64, .08, def.color, 0, .28, 0);
+            blade.rotation.z = i * Math.PI / 2;
+            blades.add(blade);
+          }
+
+          group.add(blades);
+          break;
+        }
+
+        case "tank": {
+          const tank = cylinder(.55, 1.3, def.color, 14);
+          tank.position.y = .65;
+          group.add(tank);
+          group.add(box(.18, .22, .18, 0x4d7890, .58, .22, 0));
+          break;
+        }
+
+        case "pump": {
+          group.add(box(.95, .55, .65, def.color, 0, .29, 0));
+          const pipe = cylinder(.09, .8, 0xaeddec, 10);
+          pipe.rotation.z = Math.PI / 2;
+          pipe.position.set(.62, .45, 0);
+          group.add(pipe);
+          break;
+        }
+
+        case "solar": {
+          const panel = box(1.6, .12, 1.05, def.color, 0, .8, 0);
+          panel.rotation.x = -.35;
+          group.add(panel);
+
+          for (let i = -1; i <= 1; i += 1) {
+            group.add(box(.03, .14, 1.05, 0xc0d7ea, i * .45, .82, 0));
+          }
+
+          group.add(box(.12, .7, .12, 0x777777, 0, .36, 0));
+          break;
+        }
+
+        case "window": {
+          group.add(box(1.55, 1.5, .15, 0xf0eee2, 0, .8, 0));
+          group.add(
+            box(
+              1.3,
+              1.25,
+              .18,
+              def.color,
+              0,
+              .8,
+              .01
+            )
+          );
+          group.add(box(.07, 1.25, .2, 0xffffff, 0, .8, .08));
+          group.add(box(1.3, .07, .2, 0xffffff, 0, .8, .08));
+          break;
+        }
+
+        case "bed": {
+          group.add(box(1.8, .38, 2.45, 0xdfa6b3, 0, .32, 0));
+          group.add(box(1.6, .18, 2.05, 0xfff0da, 0, .58, .08));
+          group.add(box(1.35, .22, .55, 0xffffff, 0, .72, -.65));
+          break;
+        }
+
+        case "sofa": {
+          group.add(box(2.1, .65, .85, def.color, 0, .42, 0));
+          group.add(box(2.1, .85, .3, def.color, 0, .85, -.33));
+          group.add(box(.27, .72, .92, 0xd58f76, -1.02, .46, 0));
+          group.add(box(.27, .72, .92, 0xd58f76, 1.02, .46, 0));
+          break;
+        }
+
+        case "desk": {
+          group.add(box(1.8, .15, .85, def.color, 0, 1.05, 0));
+
+          [-.72, .72].forEach((x) => {
+            [-.28, .28].forEach((z) => {
+              group.add(box(.12, 1.0, .12, 0x946a48, x, .51, z));
+            });
+          });
+          break;
+        }
+
+        case "plant": {
+          const pot = cylinder(.36, .55, 0xc87558, 12);
+          pot.position.y = .27;
+          group.add(pot);
+
+          for (let i = 0; i < 5; i += 1) {
+            const leaf = new THREE.Mesh(
+              new THREE.SphereGeometry(.3, 8, 6),
+              makeMaterial(0x67a86d)
+            );
+
+            leaf.scale.set(.55, 1.15, .5);
+            leaf.position.set(
+              Math.sin(i * 1.25) * .22,
+              .78 + (i % 2) * .12,
+              Math.cos(i * 1.25) * .22
+            );
+
+            group.add(leaf);
+          }
+          break;
+        }
+
+        case "person": {
+          const body = box(.48, .7, .3, 0x71a5d8, 0, .78, 0);
+          group.add(body);
+
+          const head = new THREE.Mesh(
+            new THREE.SphereGeometry(.29, 10, 8),
+            makeMaterial(def.color)
+          );
+
+          head.position.y = 1.35;
+          group.add(head);
+          group.add(box(.14, .62, .14, 0x765c9a, -.18, .31, 0));
+          group.add(box(.14, .62, .14, 0x765c9a, .18, .31, 0));
+          break;
+        }
+
+        default:
+          group.add(box(1, 1, 1, def.color, 0, .5, 0));
+      }
+
+      const bounds = new THREE.Box3().setFromObject(group);
+      const size = bounds.getSize(new THREE.Vector3());
+
+      group.userData.footprint = {
+        x: Math.max(.75, size.x),
+        z: Math.max(.75, size.z)
+      };
+
+      return group;
+    }
+
+    function createRoomEnvironment(space, materials) {
+      const group = new THREE.Group();
+      group.name = "environment";
+
+      const indoor = space === "indoor";
+      const floorColor = materials.floorMaterial === "tile"
+        ? 0xf2d6cd
+        : materials.floorMaterial === "green"
+          ? 0x91c985
+          : indoor
+            ? 0xe6c39b
+            : 0x91c985;
+
+      const wallColor = materials.wallMaterial === "pink"
+        ? 0xf7ced8
+        : materials.wallMaterial === "mint"
+          ? 0xbfe4d4
+          : 0xfff1ce;
+
+      const floor = box(9, .25, 7, floorColor, 0, -.14, 0);
+      floor.receiveShadow = true;
+      group.add(floor);
+
+      if (indoor) {
+        group.add(box(9, 4.5, .22, wallColor, 0, 2.15, -3.4));
+        group.add(box(.22, 4.5, 7, wallColor, -4.4, 2.15, 0));
+
+        const windowColor = materials.windowMaterial === "sunset"
+          ? 0xf6b4a4
+          : materials.windowMaterial === "mint"
+            ? 0xa8dfcf
+            : 0xa9ddf2;
+
+        const windowPane = box(2.4, 1.6, .12, windowColor, 1.5, 2.4, -3.25);
+        windowPane.material.transparent = true;
+        windowPane.material.opacity = .58;
+        group.add(windowPane);
+        group.add(box(.09, 1.6, .18, 0xffffff, 1.5, 2.4, -3.15));
+        group.add(box(2.4, .09, .18, 0xffffff, 1.5, 2.4, -3.15));
+      } else {
+        group.add(box(3.3, .55, 2.2, 0xa4d58a, 2.4, .17, 1.5));
+
+        const path = box(2.2, .08, 7, 0xe7d4b9, -2.4, .02, 0);
+        path.receiveShadow = true;
+        group.add(path);
+
+        for (let i = -3; i <= 3; i += 1) {
+          const bush = cylinder(.25, .5, 0x6fa866, 8);
+          bush.position.set(4.05, .25, i * .9);
+          group.add(bush);
+        }
+      }
+
+      return group;
+    }
+
+    function addLights(scene) {
+      scene.add(new THREE.HemisphereLight(0xfff9e8, 0x8ea397, 1.55));
+
+      const sun = new THREE.DirectionalLight(0xfff3ce, 2.2);
+      sun.position.set(7, 11, 5);
+      sun.castShadow = true;
+      sun.shadow.mapSize.set(1024, 1024);
+      sun.shadow.camera.left = -10;
+      sun.shadow.camera.right = 10;
+      sun.shadow.camera.top = 10;
+      sun.shadow.camera.bottom = -10;
+      scene.add(sun);
+
+      return sun;
+    }
+
+    function createSkyDecor(scene) {
+      const sun = new THREE.Mesh(
+        new THREE.SphereGeometry(.7, 14, 10),
+        makeMaterial(0xffdb62, {
+          emissive: 0xffc429,
+          emissiveIntensity: .8
+        })
+      );
+
+      sun.name = "skySun";
+      sun.position.set(6, 7, -6);
+      scene.add(sun);
+
+      const moon = new THREE.Mesh(
+        new THREE.SphereGeometry(.48, 12, 8),
+        makeMaterial(0xe9f2ff, {
+          emissive: 0x9fb8e8,
+          emissiveIntensity: .6
+        })
+      );
+
+      moon.name = "skyMoon";
+      moon.position.set(-6, -3, -6);
+      scene.add(moon);
+
+      return { sun, moon };
+    }
+
+    /* ============================================================
+       7. 3단계 미니룸 빌더
+       ============================================================ */
+
+    function initBuilderScene() {
+      const container = $("#builderScene");
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0xcceaf3);
+      scene.fog = new THREE.Fog(0xcceaf3, 17, 29);
+
+      const camera = createOrthographicCamera();
+      const renderer = createRenderer(container);
+      const sunLight = addLights(scene);
+
+      const root = new THREE.Group();
+      scene.add(root);
+
+      const placedRoot = new THREE.Group();
+      placedRoot.name = "placedRoot";
+      scene.add(placedRoot);
+
+      const environment = createRoomEnvironment(
+        APP_STATE.build.currentSpace,
+        APP_STATE.build
+      );
+
+      root.add(environment);
+
+      scenes.builder = {
+        container,
+        scene,
+        camera,
+        renderer,
+        root,
+        environment,
+        placedRoot,
+        sunLight,
+        objectMap: new Map(),
+        raycaster: new THREE.Raycaster(),
+        pointer: new THREE.Vector2(),
+        groundPlane: new THREE.Plane(new THREE.Vector3(0, 1, 0), 0),
+        drag: {
+          active: false,
+          moved: false,
+          startX: 0,
+          startY: 0,
+          pointerId: null
+        }
+      };
+
+      applyQuarterCamera(camera, APP_STATE.build.cameraQuarter, 1);
+      resizeScene(scenes.builder, container);
+      installBuilderInteractions();
+    }
+
+    function renderDrawer() {
+      const counts = new Map();
+
+      APP_STATE.design.materials.forEach((key) => {
+        counts.set(key, (counts.get(key) || 0) + 1);
+      });
+
+      const used = new Map();
+
+      APP_STATE.build.placed.forEach((record) => {
+        used.set(record.partKey, (used.get(record.partKey) || 0) + 1);
+      });
+
+      $("#drawerItems").innerHTML = [...counts.entries()].map(([key, count]) => {
+        const def = PART_LIBRARY[key];
+        const remain = Math.max(0, count - (used.get(key) || 0));
+
+        return `
+          <button
+            class="drawer-item"
+            type="button"
+            draggable="${remain > 0}"
+            data-part-key="${key}"
+            ${remain <= 0 ? "disabled" : ""}
+          >
+            <span class="emoji">${def.emoji}</span>
+            ${escapeHTML(def.name)}
+            <span class="count">남음 ${remain}</span>
+          </button>
+        `;
+      }).join("");
+
+      $$(".drawer-item").forEach((button) => {
+        const key = button.dataset.partKey;
+
+        button.addEventListener("click", () => {
+          if (button.disabled) {
+            return;
+          }
+
+          activePlacePart = key;
+          showToast(`${PART_LIBRARY[key].name} 선택! 장면을 눌러 주세요.`);
+        });
+
+        button.addEventListener("dragstart", (event) => {
+          activePlacePart = key;
+          event.dataTransfer.setData("text/plain", key);
+          event.dataTransfer.effectAllowed = "copy";
+        });
+
+        button.addEventListener("pointerdown", (event) => {
+          if (event.pointerType !== "mouse" && !button.disabled) {
+            activePlacePart = key;
+          }
+        });
+      });
+
+      updateBuildStats();
+    }
+
+    function syncBuilderFromState() {
+      if (!scenes.builder) {
+        return;
+      }
+
+      rebuildBuilderEnvironment();
+
+      const root = scenes.builder.placedRoot;
+      root.clear();
+      scenes.builder.objectMap.clear();
+
+      APP_STATE.build.placed
+        .filter((record) => record.space === APP_STATE.build.currentSpace)
+        .forEach((record) => {
+          const model = createObjectModel(record.partKey);
+          applyRecordToModel(record, model);
+          root.add(model);
+          scenes.builder.objectMap.set(record.id, model);
+        });
+
+      renderDrawer();
+      hideObjectHandles();
+    }
+
+    function rebuildBuilderEnvironment() {
+      const data = scenes.builder;
+
+      if (!data) {
+        return;
+      }
+
+      data.root.remove(data.environment);
+      disposeObject(data.environment);
+
+      data.environment = createRoomEnvironment(
+        APP_STATE.build.currentSpace,
+        APP_STATE.build
+      );
+
+      data.root.add(data.environment);
+      data.scene.background = new THREE.Color(
+        APP_STATE.build.currentSpace === "indoor"
+          ? 0xcceaf3
+          : 0xbce0f2
+      );
+    }
+
+    function applyRecordToModel(record, model) {
+      model.position.set(record.x, record.y, record.z);
+      model.rotation.y = record.rotation || 0;
+      model.userData.instanceId = record.id;
+      model.userData.partKey = record.partKey;
+      model.userData.record = record;
+    }
+
+    function disposeObject(object) {
+      object.traverse((child) => {
+        if (child.geometry) {
+          child.geometry.dispose();
+        }
+
+        if (child.material) {
+          const materials = Array.isArray(child.material)
+            ? child.material
+            : [child.material];
+
+          materials.forEach((material) => material.dispose());
+        }
+      });
+    }
+
+    function installBuilderInteractions() {
+      const data = scenes.builder;
+      const canvas = data.renderer.domElement;
+
+      canvas.addEventListener("dragover", (event) => {
+        event.preventDefault();
+      });
+
+      canvas.addEventListener("drop", (event) => {
+        event.preventDefault();
+        const key =
+          event.dataTransfer.getData("text/plain") || activePlacePart;
+
+        if (key) {
+          placePartAtScreen(key, event.clientX, event.clientY);
+        }
+      });
+
+      canvas.addEventListener("pointerdown", (event) => {
+        data.drag.active = true;
+        data.drag.moved = false;
+        data.drag.startX = event.clientX;
+        data.drag.startY = event.clientY;
+        data.drag.pointerId = event.pointerId;
+        canvas.setPointerCapture(event.pointerId);
+      });
+
+      canvas.addEventListener("pointermove", (event) => {
+        if (!data.drag.active) {
+          return;
+        }
+
+        const distance = event.clientX - data.drag.startX;
+
+        if (Math.abs(distance) > 30) {
+          data.drag.moved = true;
+        }
+      });
+
+      canvas.addEventListener("pointerup", (event) => {
+        if (!data.drag.active) {
+          return;
+        }
+
+        const deltaX = event.clientX - data.drag.startX;
+        const wasMoved = data.drag.moved;
+        data.drag.active = false;
+
+        if (wasMoved) {
+          APP_STATE.build.cameraQuarter =
+            (APP_STATE.build.cameraQuarter + (deltaX > 0 ? 1 : 3)) % 4;
+
+          applyQuarterCamera(
+            data.camera,
+            APP_STATE.build.cameraQuarter,
+            data.camera.userData.zoomLevel
+          );
+
+          $("#cameraAngleText").textContent =
+            `${45 + APP_STATE.build.cameraQuarter * 90}°`;
+          hideObjectHandles();
+          return;
+        }
+
+        const hit = pickBuilderObject(event.clientX, event.clientY);
+
+        if (hit) {
+          selectBuilderObject(hit.userData.instanceId);
+        } else if (activePlacePart) {
+          placePartAtScreen(
+            activePlacePart,
+            event.clientX,
+            event.clientY
+          );
+        } else {
+          hideObjectHandles();
+        }
+      });
+
+      canvas.addEventListener(
+        "wheel",
+        (event) => {
+          event.preventDefault();
+
+          const current = data.camera.userData.zoomLevel;
+          const next = THREE.MathUtils.clamp(
+            current + (event.deltaY < 0 ? .12 : -.12),
+            .72,
+            1.75
+          );
+
+          data.camera.userData.zoomLevel = next;
+          data.camera.zoom = next;
+          data.camera.updateProjectionMatrix();
+        },
+        { passive: false }
+      );
+
+      let pinchStartDistance = 0;
+      let pinchStartZoom = 1;
+      const touches = new Map();
+
+      canvas.addEventListener("pointerdown", (event) => {
+        if (event.pointerType === "touch") {
+          touches.set(event.pointerId, {
+            x: event.clientX,
+            y: event.clientY
+          });
+
+          if (touches.size === 2) {
+            const points = [...touches.values()];
+            pinchStartDistance = Math.hypot(
+              points[0].x - points[1].x,
+              points[0].y - points[1].y
+            );
+            pinchStartZoom = data.camera.userData.zoomLevel;
+          }
+        }
+      });
+
+      canvas.addEventListener("pointermove", (event) => {
+        if (!touches.has(event.pointerId)) {
+          return;
+        }
+
+        touches.set(event.pointerId, {
+          x: event.clientX,
+          y: event.clientY
+        });
+
+        if (touches.size === 2) {
+          const points = [...touches.values()];
+          const distance = Math.hypot(
+            points[0].x - points[1].x,
+            points[0].y - points[1].y
+          );
+
+          const zoom = THREE.MathUtils.clamp(
+            pinchStartZoom * distance / pinchStartDistance,
+            .72,
+            1.75
+          );
+
+          data.camera.userData.zoomLevel = zoom;
+          data.camera.zoom = zoom;
+          data.camera.updateProjectionMatrix();
+        }
+      });
+
+      const endTouch = (event) => {
+        touches.delete(event.pointerId);
+      };
+
+      canvas.addEventListener("pointerup", endTouch);
+      canvas.addEventListener("pointercancel", endTouch);
+    }
+
+    function screenToGround(sceneData, clientX, clientY) {
+      const rect = sceneData.renderer.domElement.getBoundingClientRect();
+
+      sceneData.pointer.x =
+        (clientX - rect.left) / rect.width * 2 - 1;
+      sceneData.pointer.y =
+        -(clientY - rect.top) / rect.height * 2 + 1;
+
+      sceneData.raycaster.setFromCamera(
+        sceneData.pointer,
+        sceneData.camera
+      );
+
+      const point = new THREE.Vector3();
+
+      return sceneData.raycaster.ray.intersectPlane(
+        sceneData.groundPlane,
+        point
+      )
+        ? point
+        : null;
+    }
+
+    function snap(value) {
+      return Math.round(value / GRID) * GRID;
+    }
+
+    function getDefaultY(partKey) {
+      const attach = PART_LIBRARY[partKey].attach;
+
+      if (attach === "wall") {
+        return 1.4;
+      }
+
+      if (attach === "ceiling") {
+        return 3.65;
+      }
+
+      return 0;
+    }
+
+    function normalizePlacement(partKey, point) {
+      const def = PART_LIBRARY[partKey];
+      const position = {
+        x: snap(THREE.MathUtils.clamp(point.x, -3.8, 3.8)),
+        y: getDefaultY(partKey),
+        z: snap(THREE.MathUtils.clamp(point.z, -2.8, 2.8))
+      };
+
+      if (def.attach === "wall") {
+        const distanceToBack = Math.abs(position.z + 3.25);
+        const distanceToLeft = Math.abs(position.x + 4.25);
+
+        if (distanceToBack <= distanceToLeft) {
+          position.z = -3.15;
+        } else {
+          position.x = -4.15;
+        }
+      }
+
+      if (def.attach === "ceiling") {
+        position.y = 3.65;
+      }
+
+      return position;
+    }
+
+    function placementIsValid(partKey, position) {
+      const def = PART_LIBRARY[partKey];
+
+      if (
+        APP_STATE.build.currentSpace === "indoor" &&
+        def.attach === "outdoor"
+      ) {
+        showToast("이 부품은 마당·옥상에 배치해 주세요.");
+        return false;
+      }
+
+      if (
+        APP_STATE.build.currentSpace === "outdoor" &&
+        (def.attach === "wall" || def.attach === "ceiling")
+      ) {
+        showToast("이 부품은 실내의 벽이나 천장에 배치해 주세요.");
+        return false;
+      }
+
+      const newModel = createObjectModel(partKey);
+      const newFootprint = newModel.userData.footprint;
+      disposeObject(newModel);
+
+      const collides = APP_STATE.build.placed
+        .filter((record) => record.space === APP_STATE.build.currentSpace)
+        .some((record) => {
+          const model = scenes.builder.objectMap.get(record.id);
+
+          if (!model) {
+            return false;
+          }
+
+          const footprint = model.userData.footprint;
+          const dx = Math.abs(record.x - position.x);
+          const dz = Math.abs(record.z - position.z);
+
+          return (
+            dx < (newFootprint.x + footprint.x) * .36 &&
+            dz < (newFootprint.z + footprint.z) * .36 &&
+            Math.abs(record.y - position.y) < 1.2
+          );
+        });
+
+      if (collides) {
+        showToast("물건이 겹쳐요! 빈 칸을 찾아 주세요.");
+        return false;
+      }
+
+      return true;
+    }
+
+    function placePartAtScreen(partKey, clientX, clientY) {
+      const point = screenToGround(
+        scenes.builder,
+        clientX,
+        clientY
+      );
+
+      if (!point) {
+        return;
+      }
+
+      const position = normalizePlacement(partKey, point);
+
+      if (!placementIsValid(partKey, position)) {
+        return;
+      }
+
+      const record = {
+        id: `obj_${nextInstanceId++}`,
+        partKey,
+        space: APP_STATE.build.currentSpace,
+        x: position.x,
+        y: position.y,
+        z: position.z,
+        rotation: 0
+      };
+
+      APP_STATE.build.placed.push(record);
+
+      const model = createObjectModel(partKey);
+      applyRecordToModel(record, model);
+      model.scale.setScalar(.2);
+
+      scenes.builder.placedRoot.add(model);
+      scenes.builder.objectMap.set(record.id, model);
+
+      const start = performance.now();
+
+      function pop(now) {
+        const t = Math.min(1, (now - start) / 240);
+        const bounce = 1 + Math.sin(t * Math.PI) * .22;
+        model.scale.setScalar(THREE.MathUtils.lerp(.2, 1, t) * bounce);
+
+        if (t < 1) {
+          requestAnimationFrame(pop);
+        } else {
+          model.scale.setScalar(1);
+        }
+      }
+
+      requestAnimationFrame(pop);
+      showToast("뿅!", clientX, clientY);
+
+      activePlacePart = null;
+      renderDrawer();
+      selectBuilderObject(record.id);
+    }
+
+    function pickBuilderObject(clientX, clientY) {
+      const data = scenes.builder;
+      const rect = data.renderer.domElement.getBoundingClientRect();
+
+      data.pointer.x = (clientX - rect.left) / rect.width * 2 - 1;
+      data.pointer.y = -(clientY - rect.top) / rect.height * 2 + 1;
+
+      data.raycaster.setFromCamera(data.pointer, data.camera);
+
+      const hits = data.raycaster.intersectObjects(
+        [...data.objectMap.values()],
+        true
+      );
+
+      if (!hits.length) {
+        return null;
+      }
+
+      let object = hits[0].object;
+
+      while (object && !object.userData.instanceId) {
+        object = object.parent;
+      }
+
+      return object;
+    }
+
+    function selectBuilderObject(id) {
+      selectedObjectId = id;
+      const model = scenes.builder.objectMap.get(id);
+
+      if (!model) {
+        return;
+      }
+
+      scenes.builder.objectMap.forEach((item) => {
+        item.traverse((child) => {
+          if (child.material?.emissive) {
+            child.material.emissive.setHex(0x000000);
+          }
+        });
+      });
+
+      model.traverse((child) => {
+        if (child.material?.emissive) {
+          child.material.emissive.setHex(0x27341d);
+        }
+      });
+
+      const point = model.position.clone().project(scenes.builder.camera);
+      const rect = scenes.builder.renderer.domElement.getBoundingClientRect();
+      const handles = $("#objectHandles");
+
+      handles.style.left =
+        `${(point.x * .5 + .5) * rect.width + 10}px`;
+      handles.style.top =
+        `${(-point.y * .5 + .5) * rect.height - 25}px`;
+      handles.classList.add("show");
+    }
+
+    function hideObjectHandles() {
+      selectedObjectId = null;
+      $("#objectHandles").classList.remove("show");
+
+      if (scenes.builder) {
+        scenes.builder.objectMap.forEach((item) => {
+          item.traverse((child) => {
+            if (child.material?.emissive) {
+              child.material.emissive.setHex(0x000000);
+            }
+          });
+        });
+      }
+    }
+
+    $("#rotateObject").addEventListener("click", () => {
+      const record = APP_STATE.build.placed.find(
+        (item) => item.id === selectedObjectId
+      );
+
+      if (!record) {
+        return;
+      }
+
+      record.rotation =
+        (record.rotation + Math.PI / 2) % (Math.PI * 2);
+
+      const model = scenes.builder.objectMap.get(record.id);
+      model.rotation.y = record.rotation;
+      selectBuilderObject(record.id);
+    });
+
+    $("#deleteObject").addEventListener("click", () => {
+      const index = APP_STATE.build.placed.findIndex(
+        (item) => item.id === selectedObjectId
+      );
+
+      if (index < 0) {
+        return;
+      }
+
+      const [record] = APP_STATE.build.placed.splice(index, 1);
+      const model = scenes.builder.objectMap.get(record.id);
+
+      if (model) {
+        scenes.builder.placedRoot.remove(model);
+        disposeObject(model);
+        scenes.builder.objectMap.delete(record.id);
+      }
+
+      hideObjectHandles();
+      renderDrawer();
+    });
+
+    function switchSpace(space) {
+      APP_STATE.build.currentSpace = space;
+      $("#sceneBadge").textContent =
+        space === "indoor"
+          ? "🏠 실내 미니룸"
+          : "🌿 마당·옥상";
+      $("#currentSpaceText").textContent =
+        space === "indoor" ? "실내" : "마당·옥상";
+
+      activePlacePart = null;
+      syncBuilderFromState();
+    }
+
+    $("#indoorButton").addEventListener(
+      "click",
+      () => switchSpace("indoor")
+    );
+
+    $("#outdoorButton").addEventListener(
+      "click",
+      () => switchSpace("outdoor")
+    );
+
+    ["wallMaterial", "floorMaterial", "windowMaterial"].forEach((id) => {
+      $(`#${id}`).addEventListener("change", (event) => {
+        APP_STATE.build[id] = event.target.value;
+        rebuildBuilderEnvironment();
+      });
+    });
+
+    $("#guestMemo").addEventListener("input", (event) => {
+      APP_STATE.plan.guestMemo = event.target.value;
+    });
+
+    function updateBuildStats() {
+      $("#placedCount").textContent =
+        `${APP_STATE.build.placed.length}개`;
+
+      $("#remainingCount").textContent =
+        `${Math.max(
+          0,
+          APP_STATE.design.materials.length -
+          APP_STATE.build.placed.length
+        )}개`;
+    }
+
+    /* ============================================================
+       8. 4단계 완성품 시뮬레이션
+       ============================================================ */
+
+    function initSimulationScene() {
+      const container = $("#simulationView");
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0xbfe4f2);
+      scene.fog = new THREE.Fog(0xbfe4f2, 18, 30);
+
+      const camera = createOrthographicCamera();
+      const renderer = createRenderer(container);
+      const sunLight = addLights(scene);
+      const skyDecor = createSkyDecor(scene);
+
+      const houseRoot = new THREE.Group();
+      scene.add(houseRoot);
+
+      const environment = createRoomEnvironment(
+        "indoor",
+        APP_STATE.build
+      );
+
+      houseRoot.add(environment);
+
+      const outdoorDeck = createRoomEnvironment(
+        "outdoor",
+        APP_STATE.build
+      );
+
+      outdoorDeck.position.x = 10;
+      houseRoot.add(outdoorDeck);
+
+      const objectRoot = new THREE.Group();
+      houseRoot.add(objectRoot);
+
+      const wireRoot = new THREE.Group();
+      houseRoot.add(wireRoot);
+
+      const particleRoot = new THREE.Group();
+      houseRoot.add(particleRoot);
+
+      scenes.simulation = {
+        container,
+        scene,
+        camera,
+        renderer,
+        houseRoot,
+        environment,
+        outdoorDeck,
+        objectRoot,
+        wireRoot,
+        particleRoot,
+        sunLight,
+        skyDecor,
+        objectMap: new Map(),
+        wires: [],
+        rain: [],
+        waterParticles: [],
+        lastTime: performance.now()
+      };
+
+      applyQuarterCamera(camera, 0, .78);
+      camera.lookAt(4.2, 1.4, 0);
+      resizeScene(scenes.simulation, container);
+      createRainParticles();
+    }
+
+    function syncSimulationFromState() {
+      const data = scenes.simulation;
+
+      if (!data) {
+        return;
+      }
+
+      data.objectRoot.clear();
+      data.wireRoot.clear();
+      data.objectMap.clear();
+      data.wires = [];
+
+      APP_STATE.build.placed.forEach((record) => {
+        const model = createObjectModel(record.partKey);
+        const copiedRecord = { ...record };
+
+        if (record.space === "outdoor") {
+          copiedRecord.x += 10;
+        }
+
+        applyRecordToModel(copiedRecord, model);
+        model.userData.originalRecord = record;
+        data.objectRoot.add(model);
+
+        if (!data.objectMap.has(record.partKey)) {
+          data.objectMap.set(record.partKey, []);
+        }
+
+        data.objectMap.get(record.partKey).push(model);
+      });
+
+      createSimulationWires();
+      validateSystem(true);
+    }
+
+    function firstModel(partKey) {
+      return scenes.simulation.objectMap.get(partKey)?.[0] || null;
+    }
+
+    function createSimulationWires() {
+      const data = scenes.simulation;
+
+      APP_STATE.design.links.forEach(([from, to, type], index) => {
+        const a = firstModel(from);
+        const b = firstModel(to);
+
+        if (!a || !b) {
+          return;
+        }
+
+        const start = a.position.clone().add(new THREE.Vector3(0, .5, 0));
+        const end = b.position.clone().add(new THREE.Vector3(0, .5, 0));
+        const middle = start.clone().lerp(end, .5);
+        middle.y += 1 + Math.min(1.5, start.distanceTo(end) * .1);
+
+        const curve = new THREE.CatmullRomCurve3([start, middle, end]);
+        const geometry = new THREE.TubeGeometry(curve, 24, .035, 6, false);
+        const material = new THREE.MeshStandardMaterial({
+          color: type === "water" ? 0x62c7eb : 0xf5cf69,
+          emissive: type === "water" ? 0x0f5269 : 0x5c4311,
+          emissiveIntensity: .12
+        });
+
+        const mesh = new THREE.Mesh(geometry, material);
+        data.wireRoot.add(mesh);
+
+        const flow = new THREE.Mesh(
+          new THREE.SphereGeometry(.085, 8, 5),
+          new THREE.MeshBasicMaterial({
+            color: type === "water" ? 0xb9f1ff : 0xffffbc
+          })
+        );
+
+        data.wireRoot.add(flow);
+
+        data.wires.push({
+          from,
+          to,
+          type,
+          curve,
+          mesh,
+          flow,
+          phase: index * .18,
+          active: false
+        });
+      });
+    }
+
+    function createRainParticles() {
+      const data = scenes.simulation;
+      const geometry = new THREE.BufferGeometry();
+      const count = 170;
+      const positions = new Float32Array(count * 3);
+
+      for (let i = 0; i < count; i += 1) {
+        positions[i * 3] = Math.random() * 22 - 6;
+        positions[i * 3 + 1] = Math.random() * 10;
+        positions[i * 3 + 2] = Math.random() * 12 - 6;
+      }
+
+      geometry.setAttribute(
+        "position",
+        new THREE.BufferAttribute(positions, 3)
+      );
+
+      const material = new THREE.PointsMaterial({
+        color: 0xa9e4ff,
+        size: .1,
+        transparent: true,
+        opacity: .75
+      });
+
+      const rain = new THREE.Points(geometry, material);
+      rain.visible = false;
+      data.scene.add(rain);
+      data.rainPoints = rain;
+    }
+
+    function setObjectError(partKey, error) {
+      const models = scenes.simulation.objectMap.get(partKey) || [];
+
+      models.forEach((model) => {
+        model.userData.error = error;
+      });
+    }
+
+    function placed(partKey) {
+      return APP_STATE.build.placed.some(
+        (record) => record.partKey === partKey
+      );
+    }
+
+    function validateSystem(logProblems = false) {
+      let problems = [];
+      const selected = APP_STATE.plan.selectedFeatures;
+
+      Object.keys(PART_LIBRARY).forEach((key) => {
+        setObjectError(key, false);
+      });
+
+      if (!placed("controller")) {
+        problems.push({
+          part: "controller",
+          text: "제어 보드가 없어서 센서의 신호를 전달할 수 없어요. 실내 바닥에 제어 보드를 놓아 주세요."
+        });
+      }
+
+      if (!placed("battery")) {
+        problems.push({
+          part: "battery",
+          text: "배터리가 없어 전기를 저장하거나 공급할 수 없어요. 배터리를 실내에 놓아 주세요."
+        });
+      }
+
+      selected.forEach((featureKey) => {
+        FEATURE_RULES[featureKey].parts.forEach((partKey) => {
+          if (!placed(partKey)) {
+            problems.push({
+              part: partKey,
+              text:
+                `${PART_LIBRARY[partKey].name}이(가) 배치되지 않았어요. ` +
+                `3단계로 돌아가 아이템 서랍에서 꺼내 주세요.`
+            });
+          }
+        });
+      });
+
+      APP_STATE.design.links.forEach(([from, to, type]) => {
+        if (placed(from) && placed(to)) {
+          const hasWire = scenes.simulation.wires.some(
+            (wire) =>
+              wire.from === from &&
+              wire.to === to &&
+              wire.type === type
+          );
+
+          if (!hasWire) {
+            problems.push({
+              part: from,
+              text:
+                `${PART_LIBRARY[from].name}과(와) ` +
+                `${PART_LIBRARY[to].name}의 ` +
+                `${type === "water" ? "배관" : "배선"}을 설계도에서 연결해 주세요.`
+            });
+          }
+        }
+      });
+
+      problems.forEach((problem) => {
+        setObjectError(problem.part, true);
+      });
+
+      if (logProblems) {
+        logLine("완성된 집과 자동 배선·배관을 검사합니다.");
+
+        if (problems.length === 0) {
+          logLine(
+            "모든 핵심 부품이 연결되었습니다. 환경 값을 바꿔 작동을 시험해 보세요!",
+            "success"
+          );
+        } else {
+          problems.forEach((problem) => {
+            logLine(`문제: ${problem.text}`, "warning");
+          });
+        }
+      }
+
+      return problems;
+    }
+
+    function logLine(text, className = "") {
+      const consoleElement = $("#console");
+      const line = document.createElement("div");
+      line.className = className;
+      line.textContent = `> ${text}`;
+      consoleElement.appendChild(line);
+      consoleElement.scrollTop = consoleElement.scrollHeight;
+
+      while (consoleElement.children.length > 80) {
+        consoleElement.firstElementChild.remove();
+      }
+    }
+
+    let lastModes = {};
+
+    function featureReady(featureKey) {
+      const rule = FEATURE_RULES[featureKey];
+
+      return (
+        APP_STATE.plan.selectedFeatures.includes(featureKey) &&
+        placed("controller") &&
+        placed("battery") &&
+        rule.parts.every(placed)
+      );
+    }
+
+    function setLamp(partKey, on) {
+      const models = scenes.simulation.objectMap.get(partKey) || [];
+
+      models.forEach((model) => {
+        model.traverse((child) => {
+          if (child.userData.isBulb && child.material) {
+            child.material.emissive.setHex(on ? 0xffc43d : 0x332400);
+            child.material.emissiveIntensity = on ? 3.2 : .15;
+          }
+        });
+
+        let light = model.getObjectByName("pointLight");
+
+        if (on && !light) {
+          light = new THREE.PointLight(0xffd783, 4.2, 6, 2);
+          light.name = "pointLight";
+          light.position.y = .2;
+          model.add(light);
+        } else if (light) {
+          light.visible = on;
+        }
+      });
+    }
+
+    function setFan(on, delta) {
+      const models = scenes.simulation.objectMap.get("fan") || [];
+
+      models.forEach((model) => {
+        const blades = model.getObjectByName("fanBlades");
+
+        if (blades && on) {
+          blades.rotation.z -= delta * 9;
+        }
+      });
+    }
+
+    function setActiveWires(requiredParts, active) {
+      scenes.simulation.wires.forEach((wire) => {
+        const relevant =
+          requiredParts.includes(wire.from) ||
+          requiredParts.includes(wire.to);
+
+        if (relevant) {
+          wire.active = active;
+          wire.mesh.material.emissiveIntensity = active ? 1.7 : .12;
+        }
+      });
+    }
+
+    function updateEnvironmentLight() {
+      const sim = APP_STATE.simulation;
+      const data = scenes.simulation;
+      const angle = sim.time / 24 * Math.PI * 2 - Math.PI / 2;
+      const daylight = Math.max(0, Math.sin(angle));
+      const weatherFactor =
+        sim.weather === "sunny"
+          ? 1
+          : sim.weather === "cloudy"
+            ? .47
+            : .24;
+
+      const lightLevel = daylight * weatherFactor;
+
+      data.skyDecor.sun.position.set(
+        Math.cos(angle) * 9 + 3,
+        Math.sin(angle) * 8 + 1,
+        -7
+      );
+
+      data.skyDecor.moon.position.set(
+        -Math.cos(angle) * 9 + 3,
+        -Math.sin(angle) * 8 + 1,
+        -7
+      );
+
+      data.skyDecor.sun.visible = daylight > .02;
+      data.skyDecor.moon.visible = daylight < .16;
+      data.sunLight.intensity = .25 + lightLevel * 2.25;
+
+      const dayColor = new THREE.Color(0xbfe4f2);
+      const nightColor = new THREE.Color(0x1c2e52);
+      const cloudColor = new THREE.Color(0x8096a5);
+
+      const background = nightColor.clone().lerp(dayColor, lightLevel);
+
+      if (sim.weather !== "sunny") {
+        background.lerp(cloudColor, sim.weather === "rain" ? .6 : .35);
+      }
+
+      data.scene.background = background;
+      data.scene.fog.color.copy(background);
+      data.rainPoints.visible = sim.weather === "rain";
+
+      return {
+        daylight,
+        weatherFactor,
+        lightLevel
+      };
+    }
+
+    function createWaterStream() {
+      const pump = firstModel("pump");
+
+      if (!pump) {
+        return;
+      }
+
+      const data = scenes.simulation;
+
+      for (let i = 0; i < 20; i += 1) {
+        const drop = new THREE.Mesh(
+          new THREE.SphereGeometry(.055, 6, 4),
+          new THREE.MeshBasicMaterial({
+            color: 0x75d9ff,
+            transparent: true,
+            opacity: .8
+          })
+        );
+
+        data.particleRoot.add(drop);
+        data.waterParticles.push({
+          mesh: drop,
+          origin: pump.position.clone().add(
+            new THREE.Vector3(.7, .5, 0)
+          ),
+          phase: Math.random()
+        });
+      }
+    }
+
+    function updateWaterStream(active, elapsed) {
+      const data = scenes.simulation;
+
+      if (active && data.waterParticles.length === 0) {
+        createWaterStream();
+      }
+
+      data.waterParticles.forEach((particle) => {
+        particle.mesh.visible = active;
+
+        if (!active) {
+          return;
+        }
+
+        const t = (elapsed * .65 + particle.phase) % 1;
+        particle.mesh.position.copy(particle.origin);
+        particle.mesh.position.x += t * 2.2;
+        particle.mesh.position.y += .6 * Math.sin(t * Math.PI) - t * .45;
+        particle.mesh.position.z +=
+          Math.sin((t + particle.phase) * 8) * .08;
+      });
+    }
+
+    function animateMinimi(elapsed) {
+      const minimi = firstModel("minimi");
+
+      if (!minimi) {
+        return false;
+      }
+
+      const original = minimi.userData.originalRecord;
+
+      if (APP_STATE.simulation.people > 0) {
+        minimi.position.x =
+          original.x + Math.sin(elapsed * .8) * 1.45;
+        minimi.position.z =
+          original.z + Math.cos(elapsed * .8) * .25;
+      }
+
+      return APP_STATE.simulation.people > 0 &&
+        Math.sin(elapsed * .8) > .25;
+    }
+
+    function updateSimulation(logChanges = false, delta = 0) {
+      if (!scenes.simulation) {
+        return;
+      }
+
+      const sim = APP_STATE.simulation;
+      const lighting = updateEnvironmentLight();
+      const elapsed = performance.now() / 1000;
+      const minimiPassing = animateMinimi(elapsed);
+
+      const lightOn =
+        featureReady("autoLight") &&
+        lighting.lightLevel < .22 &&
+        sim.battery > 1;
+
+      setLamp("led", lightOn);
+      setActiveWires(["lightSensor", "led"], lightOn);
+
+      if (lightOn) {
+        sim.battery = Math.max(0, sim.battery - delta * .045);
+        sim.savedEnergy += delta * .15;
+      }
+
+      if (logChanges && lastModes.lightOn !== lightOn) {
+        logLine(
+          lightOn
+            ? "조도센서가 어두움을 감지해 LED 전구를 켰어요."
+            : "주변이 밝아져 LED 전구를 껐어요.",
+          "success"
+        );
+      }
+
+      const insulation =
+        APP_STATE.plan.selectedFeatures.includes("insulation") &&
+        placed("insulatedWindow")
+          ? .38
+          : .72;
+
+      const targetIndoor =
+        22 + (sim.outdoorTemp - 22) * insulation;
+
+      sim.indoorTemp +=
+        (targetIndoor - sim.indoorTemp) * Math.min(1, delta * .15);
+
+      const fanOn =
+        featureReady("climate") &&
+        sim.indoorTemp > 27 &&
+        sim.battery > 1;
+
+      setFan(fanOn, delta);
+      setActiveWires(["climateSensor", "fan"], fanOn);
+
+      if (fanOn) {
+        sim.indoorTemp -= delta * .75;
+        sim.battery = Math.max(0, sim.battery - delta * .07);
+        sim.savedEnergy += delta * (placed("insulatedWindow") ? .35 : .18);
+      }
+
+      if (logChanges && lastModes.fanOn !== fanOn) {
+        logLine(
+          fanOn
+            ? `온습도센서가 ${sim.indoorTemp.toFixed(1)}°C를 감지해 환기팬을 돌려요.`
+            : "실내 온도가 알맞아 환기팬을 멈췄어요.",
+          "success"
+        );
+      }
+
+      const motionLightOn =
+        featureReady("motionLight") &&
+        minimiPassing &&
+        sim.battery > 1;
+
+      setLamp("entranceLed", motionLightOn);
+      setActiveWires(
+        ["motionSensor", "entranceLed"],
+        motionLightOn
+      );
+
+      if (motionLightOn) {
+        sim.battery = Math.max(0, sim.battery - delta * .025);
+      }
+
+      if (logChanges && lastModes.motionLightOn !== motionLightOn) {
+        logLine(
+          motionLightOn
+            ? "인체감지센서가 미니미를 발견해 현관 조명을 켰어요."
+            : "미니미가 지나가 현관 조명을 잠시 후 껐어요.",
+          "success"
+        );
+      }
+
+      if (sim.weather === "rain" && placed("waterTank")) {
+        sim.water = Math.min(100, sim.water + delta * 1.7);
+      }
+
+      sim.soilMoisture = Math.max(
+        0,
+        sim.soilMoisture - delta * (
+          sim.weather === "rain" ? 0 : .16
+        )
+      );
+
+      const pumpOn =
+        featureReady("watering") &&
+        sim.soilMoisture < 25 &&
+        sim.water > 2 &&
+        sim.battery > 1;
+
+      setActiveWires(
+        ["soilSensor", "rainSensor", "waterTank", "pump"],
+        pumpOn
+      );
+
+      updateWaterStream(pumpOn, elapsed);
+
+      if (pumpOn) {
+        sim.water = Math.max(0, sim.water - delta * .85);
+        sim.soilMoisture = Math.min(100, sim.soilMoisture + delta * 3.4);
+        sim.savedWater += delta * .025;
+        sim.battery = Math.max(0, sim.battery - delta * .035);
+      }
+
+      if (logChanges && lastModes.pumpOn !== pumpOn) {
+        logLine(
+          pumpOn
+            ? "토양수분센서가 마른 흙을 감지해 급수 펌프를 작동했어요."
+            : "흙이 촉촉해져 급수 펌프를 멈췄어요.",
+          "success"
+        );
+      }
+
+      const solarReady = featureReady("solar");
+      const solarGeneration = solarReady
+        ? lighting.lightLevel * 220
+        : 0;
+
+      if (solarGeneration > 1) {
+        sim.battery = Math.min(
+          100,
+          sim.battery + delta * solarGeneration / 900
+        );
+        sim.savedEnergy += delta * solarGeneration / 3600;
+        setActiveWires(["solarPanel", "battery"], true);
+      } else {
+        setActiveWires(["solarPanel", "battery"], false);
+      }
+
+      const problems = validateSystem(false);
+
+      const workingFeatures = [
+        featureReady("autoLight"),
+        featureReady("climate"),
+        featureReady("motionLight"),
+        featureReady("watering"),
+        featureReady("solar"),
+        APP_STATE.plan.selectedFeatures.includes("insulation") &&
+          placed("insulatedWindow")
+      ].filter(Boolean).length;
+
+      const selectedCount = APP_STATE.plan.selectedFeatures.length;
+      const completion =
+        selectedCount > 0 ? workingFeatures / selectedCount : 0;
+
+      sim.score = Math.round(
+        Math.max(
+          0,
+          Math.min(
+            100,
+            30 +
+            completion * 55 +
+            Math.min(10, sim.savedEnergy * 3) +
+            Math.min(5, sim.savedWater * 10) -
+            problems.length * 8
+          )
+        )
+      );
+
+      $("#batteryMeter").style.width = `${sim.battery}%`;
+      $("#batteryText").textContent = `${Math.round(sim.battery)}%`;
+      $("#waterMeter").style.width = `${sim.water}%`;
+      $("#waterText").textContent = `${Math.round(sim.water)}%`;
+      $("#ecoScore").textContent = `${sim.score}점`;
+
+      const starCount = Math.max(
+        1,
+        Math.min(5, Math.ceil(sim.score / 20))
+      );
+
+      $("#ecoStars").textContent =
+        "★".repeat(starCount) + "☆".repeat(5 - starCount);
+
+      $("#savingText").textContent =
+        `절감 전력 ${sim.savedEnergy.toFixed(1)}Wh · ` +
+        `절약한 물 ${sim.savedWater.toFixed(2)}L · ` +
+        `실내 ${sim.indoorTemp.toFixed(1)}°C`;
+
+      lastModes = {
+        lightOn,
+        fanOn,
+        motionLightOn,
+        pumpOn
+      };
+    }
+
+    /* ============================================================
+       9. 시뮬레이션 컨트롤
+       ============================================================ */
+
+    $("#timeControl").addEventListener("input", (event) => {
+      APP_STATE.simulation.time = Number(event.target.value);
+      const hour = Math.floor(APP_STATE.simulation.time);
+      const minute = Math.round(
+        (APP_STATE.simulation.time - hour) * 60
+      );
+
+      $("#timeValue").textContent =
+        `${String(hour % 24).padStart(2, "0")}:` +
+        `${String(minute % 60).padStart(2, "0")}`;
+
+      updateSimulation(true);
+    });
+
+    $("#weatherControl").addEventListener("change", (event) => {
+      APP_STATE.simulation.weather = event.target.value;
+      logLine(
+        `날씨가 ${
+          {
+            sunny: "맑음",
+            cloudy: "흐림",
+            rain: "비"
+          }[event.target.value]
+        }으로 바뀌었습니다.`
+      );
+      updateSimulation(true);
+    });
+
+    $("#temperatureControl").addEventListener("input", (event) => {
+      APP_STATE.simulation.outdoorTemp = Number(event.target.value);
+      $("#temperatureValue").textContent =
+        `${APP_STATE.simulation.outdoorTemp}°C`;
+      updateSimulation(true);
+    });
+
+    $("#peopleControl").addEventListener("input", (event) => {
+      APP_STATE.simulation.people = Number(event.target.value);
+      $("#peopleValue").textContent =
+        `${APP_STATE.simulation.people}명`;
+      updateSimulation(true);
+    });
+
+    $("#drySoilButton").addEventListener("click", () => {
+      APP_STATE.simulation.soilMoisture = 8;
+      logLine("실험을 위해 화단의 흙을 건조 상태로 바꿨어요.");
+      updateSimulation(true);
+    });
+
+    $("#resetSimulation").addEventListener("click", () => {
+      Object.assign(APP_STATE.simulation, {
+        time: 12,
+        weather: "sunny",
+        outdoorTemp: 24,
+        people: 1,
+        soilMoisture: 34,
+        battery: 50,
+        water: 70,
+        indoorTemp: 24,
+        savedEnergy: 0,
+        savedWater: 0,
+        score: 0
+      });
+
+      $("#timeControl").value = 12;
+      $("#weatherControl").value = "sunny";
+      $("#temperatureControl").value = 24;
+      $("#peopleControl").value = 1;
+      $("#timeValue").textContent = "12:00";
+      $("#temperatureValue").textContent = "24°C";
+      $("#peopleValue").textContent = "1명";
+      $("#console").innerHTML = "";
+      lastModes = {};
+
+      validateSystem(true);
+      updateSimulation(true);
+    });
+
+    /* ============================================================
+       10. 오류 점멸, 전류 흐름, 비·애니메이션 렌더 루프
+       ============================================================ */
+
+    function animateScene(now) {
+      requestAnimationFrame(animateScene);
+
+      if (scenes.builder) {
+        scenes.builder.renderer.render(
+          scenes.builder.scene,
+          scenes.builder.camera
+        );
+      }
+
+      if (scenes.simulation) {
+        const data = scenes.simulation;
+        const delta = Math.min(
+          .05,
+          (now - data.lastTime) / 1000 || 0
+        );
+
+        data.lastTime = now;
+
+        data.wires.forEach((wire) => {
+          const t = (now / 1300 + wire.phase) % 1;
+          wire.flow.position.copy(wire.curve.getPoint(t));
+          wire.flow.visible = wire.active;
+        });
+
+        if (data.rainPoints?.visible) {
+          const positions =
+            data.rainPoints.geometry.attributes.position.array;
+
+          for (let i = 0; i < positions.length / 3; i += 1) {
+            positions[i * 3 + 1] -= delta * 8;
+
+            if (positions[i * 3 + 1] < 0) {
+              positions[i * 3 + 1] = 9;
+            }
+          }
+
+          data.rainPoints.geometry.attributes.position.needsUpdate = true;
+        }
+
+        data.objectMap.forEach((models) => {
+          models.forEach((model) => {
+            if (!model.userData.error) {
+              model.visible = true;
+              return;
+            }
+
+            model.visible = Math.sin(now / 120) > -.15;
+
+            model.traverse((child) => {
+              if (child.material?.emissive) {
+                child.material.emissive.setHex(0x9e1010);
+                child.material.emissiveIntensity = 1.4;
+              }
+            });
+          });
+        });
+
+        if (APP_STATE.currentStep === 4) {
+          updateSimulation(false, delta);
+        }
+
+        data.renderer.render(data.scene, data.camera);
+      }
+    }
+
+    /* ============================================================
+       11. BGM: 외부 음원 없이 Web Audio API로 만든 짧은 루프
+       ============================================================ */
+
+    let audioContext = null;
+    let bgmTimer = null;
+    let bgmOn = false;
+    let noteIndex = 0;
+
+    const melody = [
+      261.63, 329.63, 392.00, 329.63,
+      293.66, 349.23, 440.00, 349.23
+    ];
+
+    function playBgmNote() {
+      if (!audioContext || !bgmOn) {
+        return;
+      }
+
+      const oscillator = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+      const now = audioContext.currentTime;
+
+      oscillator.type = "triangle";
+      oscillator.frequency.value =
+        melody[noteIndex % melody.length];
+
+      gain.gain.setValueAtTime(.0001, now);
+      gain.gain.exponentialRampToValueAtTime(.045, now + .025);
+      gain.gain.exponentialRampToValueAtTime(.0001, now + .32);
+
+      oscillator.connect(gain);
+      gain.connect(audioContext.destination);
+      oscillator.start(now);
+      oscillator.stop(now + .34);
+
+      noteIndex += 1;
+    }
+
+    $("#bgmButton").addEventListener("click", async () => {
+      if (!audioContext) {
+        audioContext = new AudioContext();
+      }
+
+      await audioContext.resume();
+      bgmOn = !bgmOn;
+      $("#bgmButton").textContent =
+        bgmOn ? "♫ BGM ON" : "♫ BGM OFF";
+
+      if (bgmOn) {
+        playBgmNote();
+        bgmTimer = setInterval(playBgmNote, 430);
+      } else {
+        clearInterval(bgmTimer);
+        bgmTimer = null;
+      }
+    });
+
+    /* ============================================================
+       12. 초기화와 반응형 크기 처리
+       ============================================================ */
+
+    function resizeAllScenes() {
+      if (scenes.builder) {
+        resizeScene(scenes.builder, $("#builderScene"));
+      }
+
+      if (scenes.simulation) {
+        resizeScene(scenes.simulation, $("#simulationView"));
+      }
+
+      if (APP_STATE.currentStep === 2) {
+        drawBlueprintWires();
+      }
+    }
+
+    window.addEventListener("resize", resizeAllScenes);
+
+    initBuilderScene();
+    initSimulationScene();
+    renderCustomList();
+    updateBudget();
+    updateBuildStats();
+    requestAnimationFrame(animateScene);
+  </script>
+</body>
+</html>
